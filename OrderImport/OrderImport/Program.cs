@@ -26,7 +26,7 @@ if (args.Length == 3)
         case "full":
             await Clean();
             await Import(customers, orders);
-            await CheckAsync();
+            await Check();
             break;
         default:
             Console.Error.WriteLine("Unknown Command-line Arguments");
@@ -41,7 +41,7 @@ else if (args.Length == 1)
             await Clean();
             break;
         case "check":
-            await CheckAsync();
+            await Check();
             break;
         default:
             Console.Error.WriteLine("Unknown Command-line Arguments");
@@ -81,7 +81,7 @@ async Task Clean()
     await context.SaveChangesAsync();
 }
 
-async Task CheckAsync()
+async Task Check()
 {
     var customersExceeded = await context.Customers
         .Where(x => x.Orders.Sum(y => y.OrderValue) > x.CreditLimit)
