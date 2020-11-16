@@ -1,0 +1,4 @@
+﻿CustomerName	CreditLimit
+Foo	1000
+Bar	2000
+Baz	3000
