@@ -21,12 +21,12 @@ if (args.Length == 3)
     switch (args[0])
     {
         case "import":
-            Import(customers, orders);
+            await Import(customers, orders);
             break;
         case "full":
-            Clean();
-            Import(customers, orders);
-            Check();
+            await Clean();
+            await Import(customers, orders);
+            await CheckAsync();
             break;
         default:
             Console.Error.WriteLine("Unknown Command-line Arguments");
@@ -38,10 +38,10 @@ else if (args.Length == 1)
     switch (args[0])
     {
         case "clean":
-            Clean();
+            await Clean();
             break;
         case "check":
-            Check();
+            await CheckAsync();
             break;
         default:
             Console.Error.WriteLine("Unknown Command-line Arguments");
@@ -55,7 +55,7 @@ else
 #endregion
 
 #region Methods
-void Import(IEnumerable<string[]> customers, IEnumerable<string[]> orders)
+async Task Import(IEnumerable<string[]> customers, IEnumerable<string[]> orders)
 {
     var newCustomers = customers
         .Select(x => new Customer { Name = x[0], CreditLimit = Convert.ToDecimal(x[1]), Orders = orders
@@ -65,27 +65,27 @@ void Import(IEnumerable<string[]> customers, IEnumerable<string[]> orders)
 
     context.Customers.AddRange(newCustomers);
 
-    context.SaveChanges();
+    await context.SaveChangesAsync();
 }
 
-void Clean()
+async Task Clean()
 {
     //Delete every row
     context.Customers.RemoveRange(context.Customers);
     context.Orders.RemoveRange(context.Orders);
 
     //Reset the PK's
-    context.Database.ExecuteSqlRaw("DBCC CHECKIDENT('Orders', RESEED, 0)");
-    context.Database.ExecuteSqlRaw("DBCC CHECKIDENT('Customers', RESEED, 0)");
+    await context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT('Orders', RESEED, 0)");
+    await context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT('Customers', RESEED, 0)");
 
-    context.SaveChanges();
+    await context.SaveChangesAsync();
 }
 
-void Check()
+async Task CheckAsync()
 {
-    var customersExceeded = context.Customers
+    var customersExceeded = await context.Customers
         .Where(x => x.Orders.Sum(y => y.OrderValue) > x.CreditLimit)
-        .ToList();
+        .ToListAsync();
     foreach (var c in customersExceeded) Console.WriteLine($"Customer {c.Id} has exceeded his credit limit.");
 }
 #endregion
